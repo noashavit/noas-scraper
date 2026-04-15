@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Intel Crawler</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header>
+      <div class="header-inner">
+        <div class="logo">
+          <span class="logo-icon">◎</span>
+          <span class="logo-text">Intel Crawler</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main>
+      <!-- Crawl input -->
+      <section class="crawl-section">
+        <h1>Competitive Intelligence</h1>
+        <p class="subtitle">Enter a domain to crawl and get an AI analyst overview.</p>
+        <div class="input-row">
+          <input id="url-input" type="text" placeholder="https://example.com" autocomplete="off" />
+          <button id="crawl-btn" onclick="startCrawl()">Crawl</button>
+        </div>
+
+        <!-- Provider selector -->
+        <div class="provider-row">
+          <span class="provider-label">Analyze with</span>
+          <div class="provider-toggle">
+            <button class="provider-btn" id="btn-anthropic" onclick="setProvider('anthropic')">Claude Haiku</button>
+            <button class="provider-btn active" id="btn-ollama" onclick="setProvider('ollama')">Ollama (local)</button>
+          </div>
+          <div id="ollama-model-wrap" class="hidden">
+            <select id="ollama-model" class="model-select">
+              <option value="">Loading models…</option>
+            </select>
+            <span id="ollama-status" class="ollama-status"></span>
+          </div>
+        </div>
+
+        <div id="recent-reports" class="recent-reports hidden"></div>
+      </section>
+
+      <!-- Progress -->
+      <section id="progress-section" class="hidden">
+        <div class="progress-header">
+          <span id="progress-status">Crawling…</span>
+        </div>
+        <div id="progress-log" class="progress-log"></div>
+      </section>
+
+      <!-- Report -->
+      <section id="report-section" class="hidden">
+        <!-- Company header -->
+        <div class="company-header">
+          <div class="company-meta">
+            <h2 id="company-name"></h2>
+            <a id="company-domain" href="#" target="_blank" class="domain-link"></a>
+          </div>
+        </div>
+
+        <!-- Overview cards -->
+        <div class="overview-grid">
+          <div class="overview-card">
+            <div class="card-label">What They Do</div>
+            <div id="ov-what" class="card-value"></div>
+          </div>
+          <div class="overview-card">
+            <div class="card-label">Target Audience</div>
+            <div id="ov-audience" class="card-value"></div>
+          </div>
+          <div class="overview-card">
+            <div class="card-label">Business Model</div>
+            <div id="ov-biz" class="card-value"></div>
+          </div>
+          <div class="overview-card">
+            <div class="card-label">Competitive Edge</div>
+            <div id="ov-competitive" class="card-value"></div>
+          </div>
+        </div>
+
+        <!-- Features -->
+        <div class="section-header">
+          <h3>Core Features &amp; Capabilities</h3>
+        </div>
+        <div id="features-grid" class="features-grid"></div>
+
+        <!-- Pages reviewed -->
+        <div class="section-header pages-toggle" onclick="togglePages()">
+          <h3>Pages Reviewed <span id="pages-count-label"></span></h3>
+          <span id="pages-chevron" class="chevron">▸</span>
+        </div>
+        <div id="pages-list" class="pages-list hidden"></div>
+      </section>
+
+      <!-- Error -->
+      <div id="error-banner" class="error-banner hidden"></div>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
