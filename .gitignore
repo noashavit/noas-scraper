@@ -1,0 +1,35 @@
+# Environment & secrets
+.env
+.env.*
+*.env
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Crawler output
+Crawl history/
+
+# Claude Code internal config
+.claude/
+
+# Editors & IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
