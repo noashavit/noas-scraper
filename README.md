@@ -1,6 +1,6 @@
-# Competitive Intelligence Scraper
+# Competitive intelligence scraper
 
-A local-first tool that crawls a website and generates a structured AI analyst report — covering what the product does, who it targets, how it's priced, and how it's positioned competitively.
+A local-first tool that crawls a website and generates a structured AI analyst report, covering what the product does, who it targets, how it's priced, and how it's positioned competitively.
 
 ![Demo](Assets/scraper_demo.gif)
 
@@ -112,3 +112,9 @@ Two independent Python scripts connected by a thin Flask API:
 - `GET /api/reports` — lists previous crawl files sorted by date
 
 **`static/`** — vanilla JS/CSS single-page UI, no build step required
+
+---
+
+## Built by
+
+[Noa Shavit](https://www.linkedin.com/in/noashavit), product marketer and AI builder based in San Francisco.
