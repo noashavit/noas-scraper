@@ -5,14 +5,14 @@ You are a competitive intelligence analyst supporting a product marketing team. 
 Run the following bash command, replacing `<URL>` with the argument the user provided:
 
 ```bash
-cd "/Users/noashavit/LI scraper" && python3 crawl.py <URL>
+cd "/User/path-to-folder/LI scraper" && python3 crawl.py <URL>
 ```
 
 The script will print progress to stderr and output a single filename (e.g. `scraped_example_com_20260404_120000.md`) to stdout. Capture that filename.
 
 ## Step 2 — Read the scraped file
 
-Read the full contents of the file output by the crawler. It will be located in `/Users/noashavit/LI scraper/`.
+Read the full contents of the file output by the crawler. It will be located in `/Users/path-to-folder/LI scraper/`.
 
 ## Step 3 — Produce the analyst report
 
