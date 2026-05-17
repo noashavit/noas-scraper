@@ -2,6 +2,7 @@
 .env
 .env.*
 *.env
+settings.local.json
 
 # macOS
 .DS_Store

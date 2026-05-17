@@ -11,6 +11,7 @@ A local-first tool that crawls a website and generates a structured AI analyst r
 - Guarantees minimum doc coverage when a `/docs` path or subdomain is detected
 - Live progress stream in the UI via SSE
 - AI analysis via **Claude** (Anthropic API) or any local **Ollama** model — no cloud required
+- PDF export with real clickable links (server-side Playwright rendering)
 - Vanilla JS/CSS frontend, no build step
 
 ## Requirements
@@ -55,10 +56,10 @@ ollama pull llama3
 
 ```bash
 python3 app.py
-# → http://localhost:5000
+# → http://localhost:5001
 ```
 
-Open your browser to `http://localhost:5000`, enter a URL, and hit **Crawl**. Once the crawl finishes, select a model and click **Analyze** to generate the report.
+Open your browser to `http://localhost:5001`, enter a URL, and hit **Crawl**. Once the crawl finishes, select a model and click **Analyze** to generate the report. Use **Download PDF** to export the report with clickable links.
 
 ## Crawler — standalone usage
 
@@ -108,6 +109,7 @@ Two independent Python scripts connected by a thin Flask API:
 - `POST /api/crawl` — spawns crawler subprocess, returns `job_id`
 - `GET /api/crawl/<job_id>/stream` — SSE stream with live crawl progress
 - `POST /api/analyze` — compresses scraped content (~75% token reduction) and calls Claude or Ollama
+- `POST /api/export/pdf` — renders report HTML via Playwright and returns a PDF with clickable links
 - `GET /api/ollama/models` — probes `localhost:11434` for installed models
 - `GET /api/reports` — lists previous crawl files sorted by date
 

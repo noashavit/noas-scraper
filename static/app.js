@@ -1,6 +1,7 @@
 /* ── State ── */
 let currentJobId = null;
 let selectedProvider = 'ollama';
+let currentReport = null;
 
 /* ── DOM helpers ── */
 const $ = id => document.getElementById(id);
@@ -189,6 +190,7 @@ async function runAnalysis(filename) {
 
 /* ── Render ── */
 function renderReport(data) {
+  currentReport = data;
   // Company header
   $('company-name').textContent = data.company_name || data.domain || 'Unknown';
   const domainLink = $('company-domain');
@@ -257,6 +259,44 @@ function renderReport(data) {
   });
 
   show('report-section');
+}
+
+/* ── PDF download ── */
+async function downloadPdf() {
+  const btn = $('download-pdf-btn');
+  if (!currentReport || btn.disabled) return;
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner spinner-dark"></span>Preparing…';
+
+  try {
+    const res = await fetch('/api/export/pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(currentReport),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'PDF generation failed' }));
+      throw new Error(err.error || 'PDF generation failed');
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const disposition = res.headers.get('Content-Disposition') || '';
+    const nameMatch = disposition.match(/filename="?([^"]+)"?/);
+    a.download = nameMatch ? nameMatch[1] : 'intel-report.pdf';
+    a.href = url;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error('PDF export failed:', err);
+    alert(err.message || 'Could not generate PDF. Please try again.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Download PDF';
+  }
 }
 
 /* ── Pages toggle ── */
