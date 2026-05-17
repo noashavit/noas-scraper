@@ -425,6 +425,33 @@ main {
 /* ── Utility ── */
 .hidden { display: none !important; }
 
+/* ── PDF off-screen template ── */
+#pdf-template {
+  display: none;
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  z-index: -1;
+}
+
+/* ── Download PDF button ── */
+.download-btn {
+  padding: 8px 16px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+.download-btn:hover { background: var(--tag-bg); border-color: #ccc; }
+.download-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
 /* ── Spinner in button ── */
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -438,4 +465,9 @@ main {
   animation: spin 0.7s linear infinite;
   margin-right: 6px;
   vertical-align: middle;
+}
+
+.spinner-dark {
+  border-color: rgba(0,0,0,0.15);
+  border-top-color: var(--text);
 }

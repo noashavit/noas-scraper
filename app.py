@@ -5,6 +5,8 @@ Usage: python3 app.py
 Requires: ANTHROPIC_API_KEY in .env file or environment variable
 """
 
+import html as html_mod
+import io
 import json
 import os
 import queue
@@ -14,10 +16,11 @@ import threading
 import urllib.request
 import urllib.error
 import uuid
+from datetime import date
 from pathlib import Path
 
 import anthropic
-from flask import Flask, Response, jsonify, request, send_from_directory
+from flask import Flask, Response, jsonify, request, send_file, send_from_directory
 
 OLLAMA_BASE = "http://localhost:11434"
 
@@ -366,6 +369,112 @@ def analyze():
         return jsonify({"error": str(e)}), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+def _build_report_html(data: dict) -> str:
+    def esc(s):
+        return html_mod.escape(str(s or ''))
+
+    domain = data.get('domain', '')
+    domain_url = domain if domain.startswith('http') else f'https://{domain}'
+    today = date.today().strftime('%B %-d, %Y')
+
+    overview_items = [
+        ('What They Do',         data.get('overview', {}).get('what_they_do')),
+        ('Target Audience',      data.get('overview', {}).get('target_audience')),
+        ('Business Model',       data.get('overview', {}).get('business_model')),
+        ('Competitive Position', data.get('overview', {}).get('competitive_positioning')),
+    ]
+    overview_html = ''.join(f'''
+        <div class="cell">
+          <div class="cell-label">{esc(label)}</div>
+          <div class="cell-value">{esc(val or "—")}</div>
+        </div>''' for label, val in overview_items)
+
+    features_html = ''.join(f'''
+        <div class="feature">
+          <div class="feature-name">{esc(f.get("name"))}</div>
+          <div class="feature-desc">{esc(f.get("description"))}</div>
+          {f'<a href="{esc(f["source_url"])}" class="feature-link">Learn more →</a>' if f.get("source_url") else ""}
+        </div>''' for f in (data.get('features') or []))
+
+    pages = data.get('pages_reviewed') or []
+    pages_html = ''.join(f'''
+        <div class="page-row">
+          <a href="{esc(p["url"])}">{esc(p.get("title") or p["url"])}</a>
+          {f'<span class="page-url">{esc(p["url"])}</span>' if p.get("title") else ""}
+        </div>''' for p in pages)
+
+    return f'''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+         color: #1a1a18; background: #fff; font-size: 13px; line-height: 1.6; padding: 48px; }}
+  .header {{ border-bottom: 2px solid #1a1a18; padding-bottom: 20px; margin-bottom: 28px; }}
+  .company-name {{ font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }}
+  .domain-link {{ font-size: 13px; color: #6b6b66; text-decoration: none; }}
+  .date {{ font-size: 11px; color: #aaa; margin-top: 4px; }}
+  .section-title {{ font-size: 14px; font-weight: 700; margin: 28px 0 14px; }}
+  .cell {{ margin-bottom: 18px; }}
+  .cell-label {{ font-size: 10px; font-weight: 700; text-transform: uppercase;
+                 letter-spacing: 0.08em; color: #6b6b66; margin-bottom: 4px; }}
+  .cell-value {{ font-size: 13px; line-height: 1.65; color: #1a1a18; }}
+  .feature {{ margin-bottom: 14px; padding: 14px 16px; border: 1px solid #e8e8e5; border-radius: 8px; }}
+  .feature-name {{ font-size: 13px; font-weight: 700; margin-bottom: 4px; }}
+  .feature-desc {{ font-size: 12px; line-height: 1.6; color: #4a4a46; margin-bottom: 6px; }}
+  .feature-link {{ font-size: 11px; color: #1a1a18; font-weight: 600; text-decoration: none; }}
+  .page-row {{ margin-bottom: 5px; }}
+  .page-row a {{ font-size: 12px; font-weight: 500; color: #1a1a18; text-decoration: none; }}
+  .page-url {{ font-size: 11px; color: #6b6b66; margin-left: 6px; }}
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="company-name">{esc(data.get("company_name") or domain)}</div>
+    <a href="{esc(domain_url)}" class="domain-link">{esc(domain)}</a>
+    <div class="date">Intel Crawler — {today}</div>
+  </div>
+  <div class="section-title">Overview</div>
+  {overview_html}
+  <div class="section-title">Core Features &amp; Capabilities</div>
+  {features_html}
+  <div class="section-title">Pages Reviewed ({len(pages)})</div>
+  {pages_html}
+</body>
+</html>'''
+
+
+@app.route("/api/export/pdf", methods=["POST"])
+def export_pdf():
+    data = request.get_json(force=True)
+    if not data:
+        return jsonify({"error": "report data required"}), 400
+
+    html_content = _build_report_html(data)
+
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            page = browser.new_page()
+            page.set_content(html_content, wait_until='load')
+            pdf_bytes = page.pdf(format='A4', print_background=True)
+            browser.close()
+    except Exception as e:
+        return jsonify({"error": f"PDF generation failed: {e}"}), 500
+
+    slug = re.sub(r'[^a-z0-9]+', '-', (data.get('company_name') or data.get('domain') or 'report').lower()).strip('-')[:60] or 'report'
+    filename = f"intel-{slug}-{date.today().isoformat()}.pdf"
+
+    return send_file(
+        io.BytesIO(pdf_bytes),
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name=filename,
+    )
 
 
 @app.route("/api/reports")
